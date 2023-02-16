@@ -1,0 +1,29 @@
+.header__wraper {
+    background-color: #27272A;
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 16px;
+    color: #A1A1AA;
+    height: 44px;
+    border-bottom: 1px solid #414144;
+    padding: 14px 24px;
+    display: flex;
+    .header__item{
+        margin-right: 27px;
+        cursor: pointer;
+    }
+    .header__text-active {
+        font-family: 'Roboto';
+        font-style: normal;
+        font-weight: 400;
+        font-size: 14px;
+        line-height: 16px;
+        color: #FFFFFF;
+        padding-bottom: 28px;
+        border-bottom: 2px solid #FFFFFF;
+    }
+
+}
+

@@ -1,0 +1,45 @@
+.tableItem {
+    display: grid;
+    grid-template-columns: 110px 1fr repeat(4, 200px);
+    align-content: center;
+    min-height: 60px;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 130%;
+    letter-spacing: 0.1px;
+    color: #FFFFFF;
+
+    border-bottom: 1px solid #414144;
+
+    input[type="text"] {
+        font-family: inherit;
+        /* 1 */
+        font-size: inherit;
+        /* 1 */
+        line-height: inherit;
+        /* 1 */
+        margin: 0;
+        /* 2 */
+    }
+
+    &__title {
+        display: flex;
+    }
+
+    &__number {
+        padding: 12px;
+    }
+
+    &__input {
+        border: 1px solid #414144;
+        border-radius: 6px;
+        font-weight: 400;
+        font-size: 14px;
+        line-height: 130%;
+        padding: 10px;
+        margin-left: 12px;
+        letter-spacing: 0.1px;
+        background-color: #202124;
+        color: #71717A;
+    }
+}
