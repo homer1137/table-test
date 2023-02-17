@@ -1,15 +1,16 @@
 .tableItem {
     display: grid;
     grid-template-columns: 110px 1fr repeat(4, 200px);
-    align-content: center;
+    align-items: center;
     min-height: 60px;
     font-weight: 400;
     font-size: 14px;
     line-height: 130%;
     letter-spacing: 0.1px;
     color: #FFFFFF;
-
     border-bottom: 1px solid #414144;
+
+
 
     input[type="text"] {
         font-family: inherit;
@@ -22,8 +23,39 @@
         /* 2 */
     }
 
+    &__level {
+        display: flex;
+        justify-content: center;
+    }
+    &__list {
+        position: relative;
+        z-index: 10;
+        
+    }
+
     &__title {
         display: flex;
+    }
+
+    &__item_withParent:not(:first-child) {
+        content: ' ';
+        display: block;
+        border-bottom: 1px solid #C6C6C6;
+        width: 12px;
+        position: relative;
+        bottom: 12px;
+        z-index: 1;
+
+        &::before {
+            content: ' ';
+            display: block;
+            border-left: 1px solid #C6C6C6;
+            height: 60px;
+            position: absolute;
+            z-index: 1;
+            bottom: 0px;
+        }
+
     }
 
     &__number {

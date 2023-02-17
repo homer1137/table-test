@@ -13,6 +13,23 @@ function findObj(state: any[], value: number): any {
   } else return fo;
 }
 
+function updateData(data: any[], level = 0) {
+  data.map((item) => (item.level = level));
+  let arrayOfChilds: any[] = [];
+  data.forEach((item: any) => {
+    if (item.child) {
+      arrayOfChilds = [...arrayOfChilds, ...item.child];
+    }
+  });
+  data.map((item) => {
+    if (item.child) {
+      updateData(arrayOfChilds, (level += 1));
+      arrayOfChilds = [];
+    }
+  });
+
+}
+
 export interface ILine {
   id?: number;
   child: any[];
@@ -27,6 +44,7 @@ export interface ILine {
   rowName: string;
   salary: number;
   supportCosts: number;
+  level?: number;
 }
 
 export const fetchLines = createAsyncThunk(
@@ -48,6 +66,9 @@ export const fetchLines = createAsyncThunk(
         throw new Error("Server error");
       }
       const data = await resp.json();
+      console.log("data", data);
+
+      console.log("here is something interesting", updateData(data));
       return data;
     } catch (error: any) {
       return rejectWithValue(error.message);
@@ -74,33 +95,10 @@ export const createLine = createAsyncThunk(
         throw new Error("Can't add new line");
       }
       const data = await resp.json();
-
       if (data.changed.length) {
-        // const parentLine = {
-        //   ...data.changed[0],
-        //   child: data.changed.child
-        //     ? [...data.changed.child, data.current]
-        //     : [data.current],
-        // };
-        // const response = await fetch(
-        //   `http://185.244.172.108:8081/v1/outlay-rows/entity/50088/row/${parentLine.id}/update`,
-        //   {
-        //     method: "POST",
-        //     headers: {
-        //       Accept: "application/json",
-        //       "Content-Type": "application/json",
-        //     },
-        //     body: JSON.stringify(parentLine),
-        //   }
-        // );
-        // if (!response.ok) {
-        //   throw new Error("Can't add new line");
-        // }
-        // const data2 = await response.json();
-
         dispatch(setChildForLine(data));
+        dispatch(setLevel({ id: data.current.id, level: data.changed.length }));
         data.changed.map((item: ILine) => dispatch(updateLine(item)));
-        // return data2;
       } else {
         dispatch(addLine(data.current));
       }
@@ -130,7 +128,9 @@ export const deleteLine = createAsyncThunk(
         throw new Error("Can't add new line");
       }
       const data = await resp.json();
-
+      if (data.changed.length) {
+        data.changed.map((item: ILine) => dispatch(updateLine(item)));
+      }
       dispatch(deleteOneLine(id));
 
       return data;
@@ -200,6 +200,13 @@ export const lineSlice = createSlice({
         lineData.estimatedProfit = action.payload.estimatedProfit;
       }
     },
+    setLevel(state, action) {
+      const lineData = findObj(state.value, action.payload.id);
+
+      if (lineData) {
+        lineData.level = action.payload.level;
+      }
+    },
     setChildForLine(state, action) {
       const lineData = findObj(state.value, action.payload.changed[0].id);
       if (lineData) {
@@ -222,9 +229,8 @@ export const lineSlice = createSlice({
           }
         }
       }
-      // state.value = state.value.filter((line) => line.id !== action.payload);
-      // state.value = filterAll(state.value, action.payload)
-      removeById(state.value, action.payload)
+
+      removeById(state.value, action.payload);
     },
   },
   extraReducers: (builder) => {
@@ -280,8 +286,13 @@ export const lineSlice = createSlice({
   },
 });
 
-export const { addLine, updateLineData, deleteOneLine, setChildForLine } =
-  lineSlice.actions;
+export const {
+  addLine,
+  updateLineData,
+  deleteOneLine,
+  setChildForLine,
+  setLevel,
+} = lineSlice.actions;
 
 // Other code such as selectors can use the imported `RootState` type
 export const selectLine = (state: RootState) => state.lines.value;

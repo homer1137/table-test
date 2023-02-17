@@ -20,11 +20,11 @@ interface ILine {
   rowName: string;
   salary: number;
   supportCosts: number;
+  level?: number;
 }
 type Props = {
   line: ILine;
-  parent?: boolean;
-  child?: boolean;
+ 
 };
 
 export const TableItem = ({ line }: Props) => {
@@ -44,6 +44,26 @@ export const TableItem = ({ line }: Props) => {
     supportCosts: 0,
     mimExploitation: 0,
   });
+
+  const lines = useAppSelector((state) => state.lines.value);
+
+ 
+  // let level=0
+  // function findObj(state: any[], value: number): any {
+    
+  //   let fo = state.find((li) => li.id === value);
+  //   if (!fo) {
+  //     level+=1
+  //     for (let i = 0; i < state.length; i++) {
+  //       if (state[i].child) {
+  //         const fo2 = findObj(state[i].child, value);
+  //         if (fo2) return fo2;
+  //       }
+  //     }
+  //   } else return fo;
+  // }
+  // line.id&&findObj(lines, line.id)
+  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -70,32 +90,43 @@ export const TableItem = ({ line }: Props) => {
       key={line.id}
       onDoubleClick={() => setEditMode((prev) => !prev)}
     >
-      <div className={`tableItem__title table__item_withParent`}>
-        <span className="tableItem_">{editMode ? "true" : "false"}</span>
-        <img 
-        onClick={() => dispatch(createLine({
-          child: [null],
-          equipmentCosts: 2,
-          estimatedProfit: 1,
-          machineOperatorSalary: 3,
-          mainCosts: 4,
-          materials: 1,
-          mimExploitation: 5,
-          overheads: 2,
-          parentId: line.id ? line.id : 0,
-          rowName: 'sdf',
-          salary: 4,
-          supportCosts: 3
-        }))}
-        src={list} height={15} width={13} alt="delete" />
+      <div className="tableItem__level">
+        <div className="tableItem__item_withParent">{line.level}</div>
+        <div>
+          <img
+          className="tableItem__list"
+            onClick={() =>
+              dispatch(
+                createLine({
+                  child: [null],
+                  equipmentCosts: 0,
+                  estimatedProfit: 0,
+                  machineOperatorSalary: 0,
+                  mainCosts: 0,
+                  materials: 0,
+                  mimExploitation: 0,
+                  overheads: 0,
+                  parentId: line.id ? line.id : null,
+                  rowName: "",
+                  salary: 4,
+                  supportCosts: 0,
+                })
+              )
+            }
+            src={list}
+            height={15}
+            width={13}
+            alt="create new line"
+          />
 
-        <img
-          onClick={() => dispatch(deleteLine(line.id ? line.id : 0))}
-          src={basket}
-          height={16}
-          width={16}
-          alt="list"
-        />
+          <img
+            onClick={() => dispatch(deleteLine(line.id ? line.id : 0))}
+            src={basket}
+            height={16}
+            width={16}
+            alt="delete"
+          />
+        </div>
       </div>
       {editMode ? (
         <input
