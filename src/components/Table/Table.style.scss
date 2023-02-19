@@ -35,7 +35,7 @@
         grid-column: 2/8;
         grid-row: 2/4;
         display: grid;
-        grid-template-columns: 110px 1fr repeat(4, 200px);
+        grid-template-columns: 200px 1fr repeat(4, 200px);
         align-content: center;
         height: 42px;
         border-bottom: 1px solid #414144;
@@ -58,8 +58,6 @@
         
     }
     &__child{
-        position: relative;
-        left: 18px;
         
         .tableItem__item_withParent{
             content: ' ';

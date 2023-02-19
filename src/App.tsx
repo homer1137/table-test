@@ -9,7 +9,7 @@ import {Table} from './components/Table/Table'
 import './App.css';
 
 function App() {
-
+ 
 const dispatch = useAppDispatch()
 const line = useAppSelector(selectLine)
 const entity = useAppSelector((state)=>state.entity.value.id)
@@ -23,9 +23,12 @@ useEffect(()=>{
 useEffect(()=>{
   if(entity){
     dispatch(fetchLines())
+    
   }
   
 }, [entity, dispatch])
+
+
 
 console.log('lines', lines)
   return (
@@ -41,17 +44,17 @@ console.log('lines', lines)
       
       <button onClick={()=>dispatch(createLine({
         child: [null],
-        equipmentCosts: 2,
-        estimatedProfit: 1,
-        machineOperatorSalary: 3,
-        mainCosts: 4,
-        materials: 1,
-        mimExploitation: 5,
-        overheads: 2,
+        equipmentCosts: 0,
+        estimatedProfit: 0,
+        machineOperatorSalary: 0,
+        mainCosts: 0,
+        materials: 0,
+        mimExploitation:0,
+        overheads: 0,
         parentId: null,
-        rowName: 'sdf',
-        salary: 4,
-        supportCosts: 3
+        rowName: '',
+        salary: 0,
+        supportCosts: 0
       })) }>create new line</button>
       
      

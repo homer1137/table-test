@@ -2,7 +2,7 @@ import { TableItem } from "../TableItem/TableItem";
 import { TableSideBar } from "../TableSideBar/TableSideBar";
 import { useAppSelector, useAppDispatch } from "../../store/hooks";
 import "./Table.style.scss";
-import { ILine } from "../../store/lineSlice";
+import { ILine } from "../TableItem/TableItem.type";
 
 type Props = {};
 
@@ -26,7 +26,7 @@ export const Table = (props: Props) => {
       </>
     );
   };
-
+ 
   return (
     <div className="table">
       <div className="table__tableSideBar">

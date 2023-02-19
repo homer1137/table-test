@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { firstItem } from "../components/TableItem/TableItem.service";
 import type { RootState } from "./store";
+import { ILine } from "../components/TableItem/TableItem.type";
 
 function findObj(state: any[], value: number): any {
   let fo = state.find((li) => li.id === value);
@@ -27,29 +29,13 @@ function updateData(data: any[], level = 0) {
       arrayOfChilds = [];
     }
   });
-
 }
 
-export interface ILine {
-  id?: number;
-  child: any[];
-  equipmentCosts: number;
-  estimatedProfit: number;
-  machineOperatorSalary: number;
-  mainCosts: number;
-  materials: number;
-  mimExploitation: number;
-  overheads: number;
-  parentId: number | null;
-  rowName: string;
-  salary: number;
-  supportCosts: number;
-  level?: number;
-}
+
 
 export const fetchLines = createAsyncThunk(
   "line/fetchLines",
-  async function (_, { rejectWithValue, getState }) {
+  async function (_, { rejectWithValue, getState, dispatch }) {
     const { entity } = getState() as RootState;
     try {
       const resp = await fetch(
@@ -66,9 +52,14 @@ export const fetchLines = createAsyncThunk(
         throw new Error("Server error");
       }
       const data = await resp.json();
-      console.log("data", data);
-
-      console.log("here is something interesting", updateData(data));
+      console.log("datalines", data);
+      if (!data.length) {
+        data.push(firstItem.current)
+        return data
+      }
+     
+      updateData(data);
+      
       return data;
     } catch (error: any) {
       return rejectWithValue(error.message);
@@ -95,12 +86,14 @@ export const createLine = createAsyncThunk(
         throw new Error("Can't add new line");
       }
       const data = await resp.json();
+      console.log("data", data);
       if (data.changed.length) {
         dispatch(setChildForLine(data));
         dispatch(setLevel({ id: data.current.id, level: data.changed.length }));
         data.changed.map((item: ILine) => dispatch(updateLine(item)));
       } else {
         dispatch(addLine(data.current));
+        dispatch(setLevel({ id: data.current.id, level: 0 }));
       }
 
       return data;
@@ -113,6 +106,7 @@ export const deleteLine = createAsyncThunk(
   "line/deleteLine",
   async function (id: number, { rejectWithValue, getState, dispatch }) {
     const { entity } = getState() as RootState;
+    const {lines} = getState() as RootState;
     try {
       const resp = await fetch(
         `http://185.244.172.108:8081/v1/outlay-rows/entity/50088/row/${id}/delete`,
@@ -125,14 +119,21 @@ export const deleteLine = createAsyncThunk(
         }
       );
       if (!resp.ok) {
-        throw new Error("Can't add new line");
+        throw new Error("Can't delete line");
       }
       const data = await resp.json();
       if (data.changed.length) {
         data.changed.map((item: ILine) => dispatch(updateLine(item)));
       }
       dispatch(deleteOneLine(id));
-
+      // creting new line, when delteting last line
+      if (lines.value.length===1) {
+        console.log("hehe ");
+        dispatch(addLine(firstItem.current));
+        dispatch(setLevel({ id: firstItem.current.id, level: 0 }));
+        
+        return data
+      }
       return data;
     } catch (error: any) {
       return rejectWithValue(error.message);

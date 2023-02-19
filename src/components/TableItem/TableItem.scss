@@ -1,8 +1,8 @@
 .tableItem {
     display: grid;
-    grid-template-columns: 110px 1fr repeat(4, 200px);
+    grid-template-columns: 200px 1fr repeat(4, 200px);
     align-items: center;
-    min-height: 60px;
+    height: 60px;
     font-weight: 400;
     font-size: 14px;
     line-height: 130%;
@@ -25,12 +25,12 @@
 
     &__level {
         display: flex;
-        justify-content: center;
+        position: relative;
     }
     &__list {
         position: relative;
         z-index: 10;
-        
+        margin-right: 11px;
     }
 
     &__title {
@@ -53,9 +53,25 @@
             height: 60px;
             position: absolute;
             z-index: 1;
-            bottom: 0px;
+            bottom: -200px;
         }
 
+    }
+
+    &__icons{
+        &_edit{
+            position: relative;
+            padding: 6px 8px 7px 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #414144;
+            border-radius: 6px;
+            top: 0px;
+            left: 0px;
+            z-index: 10;
+            
+        }
     }
 
     &__number {
