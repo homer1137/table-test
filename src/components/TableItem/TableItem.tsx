@@ -95,7 +95,7 @@ export const TableItem = ({ line }: Props) => {
     dispatch(
       setChildForLine(dataItem)
     );
-    dispatch(setLevel({ id: dataItem.current.id, level: line.level && line.level + 1 }));
+    dispatch(setLevel({ ...dataItem.current, id: dataItem.current.id, level: line.level && line.level + 1 }));
   };
 
   const paddingSize = (level: number): number => {

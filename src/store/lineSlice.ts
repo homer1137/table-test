@@ -1,113 +1,94 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { firstItem } from "../components/TableItem/TableItem.service";
 import type { RootState } from "./store";
 import { ILine } from "../components/TableItem/TableItem.type";
+import { updateData, findObj } from "./lineSlice.service";
+import { EntityState } from "./entitySlice";
 
-function findObj(state: any[], value: number): any {
-  let fo = state.find((li) => li.id === value);
-  if (!fo) {
-    for (let i = 0; i < state.length; i++) {
-      if (state[i].child) {
-        const fo2 = findObj(state[i].child, value);
-        if (fo2) return fo2;
-      }
-    }
-  } else return fo;
-}
-
-function updateData(data: any[], level = 0) {
-  data.map((item) => (item.level = level));
-  let arrayOfChilds: any[] = [];
-  data.forEach((item: any) => {
-    if (item.child) {
-      arrayOfChilds = [...arrayOfChilds, ...item.child];
-    }
-  });
-  data.map((item) => {
-    if (item.child) {
-      updateData(arrayOfChilds, (level += 1));
-      arrayOfChilds = [];
-    }
-  });
-}
-
-
-
-export const fetchLines = createAsyncThunk(
+//1:
+export const fetchLines = createAsyncThunk<
+  ILine[],
+  undefined,
+  { rejectValue: string; state: { lines: LineState; entity: EntityState } }
+>(
   "line/fetchLines",
-  async function (_, { rejectWithValue, getState, dispatch }) {
-    const { entity } = getState() as RootState;
-    try {
-      const resp = await fetch(
-        `http://185.244.172.108:8081/v1/outlay-rows/entity/50088/row/list`,
-        {
-          method: "get",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      if (!resp.ok) {
-        throw new Error("Server error");
+  async function (_, { rejectWithValue, getState}) {
+    const { entity } = getState()
+    const resp = await fetch(
+      `http://185.244.172.108:8081/v1/outlay-rows/entity/50088/row/list`,
+      {
+        method: "get",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
       }
-      const data = await resp.json();
-      console.log("datalines", data);
-      if (!data.length) {
-        data.push(firstItem.current)
-        return data
-      }
-     
-      updateData(data);
-      
-      return data;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    );
+    if (!resp.ok) {
+      return rejectWithValue("Server error");
     }
+    const data = await resp.json();
+    if (!data.length) {
+      data.push(firstItem.current);
+      return data;
+    }
+    updateData(data);
+    return data;
   }
 );
-export const createLine = createAsyncThunk(
+export const createLine = createAsyncThunk<
+  ILine,
+  ILine,
+  { rejectValue: string; state: { lines: LineState; entity: EntityState } }
+>(
   "line/createLine",
   async function (newLine: ILine, { rejectWithValue, getState, dispatch }) {
-    const { entity } = getState() as RootState;
-    try {
-      const resp = await fetch(
-        `http://185.244.172.108:8081/v1/outlay-rows/entity/50088/row/create`,
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(newLine),
-        }
-      );
-      if (!resp.ok) {
-        throw new Error("Can't add new line");
-      }
-      const data = await resp.json();
-      console.log("data", data);
-      if (data.changed.length) {
-        dispatch(setChildForLine(data));
-        dispatch(setLevel({ id: data.current.id, level: data.changed.length }));
-        data.changed.map((item: ILine) => dispatch(updateLine(item)));
-      } else {
-        dispatch(addLine(data.current));
-        dispatch(setLevel({ id: data.current.id, level: 0 }));
-      }
+    const { entity } = getState()
 
-      return data;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    const resp = await fetch(
+      `http://185.244.172.108:8081/v1/outlay-rows/entity/50088/row/create`,
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newLine),
+      }
+    );
+    if (!resp.ok) {
+      return rejectWithValue("Can't add new line");
     }
+    const data = await resp.json();
+  
+    if (data.changed.length) {
+      dispatch(setChildForLine(data));
+      dispatch(
+        setLevel({
+          ...data.current,
+          id: data.current.id,
+          level: data.changed.length,
+        })
+      );
+      data.changed.map((item: ILine) => dispatch(updateLine(item)));
+    } else {
+      dispatch(addLine(data.current));
+      dispatch(setLevel({ ...data.current, id: data.current.id, level: 0 }));
+    }
+
+    return data;
   }
 );
-export const deleteLine = createAsyncThunk(
+export const deleteLine = createAsyncThunk<
+ILine[],
+number,
+{ rejectValue: string; state: { lines: LineState; entity: EntityState } }
+>(
   "line/deleteLine",
   async function (id: number, { rejectWithValue, getState, dispatch }) {
-    const { entity } = getState() as RootState;
-    const {lines} = getState() as RootState;
-    try {
+    const { entity } = getState()
+    const { lines } = getState() 
+   
       const resp = await fetch(
         `http://185.244.172.108:8081/v1/outlay-rows/entity/50088/row/${id}/delete`,
         {
@@ -119,7 +100,7 @@ export const deleteLine = createAsyncThunk(
         }
       );
       if (!resp.ok) {
-        throw new Error("Can't delete line");
+        return rejectWithValue("Can't delete line");
       }
       const data = await resp.json();
       if (data.changed.length) {
@@ -127,23 +108,27 @@ export const deleteLine = createAsyncThunk(
       }
       dispatch(deleteOneLine(id));
       // creting new line, when delteting last line
-      if (lines.value.length===1) {
-        console.log("hehe ");
+      if (lines.value.length === 1&& (!lines.value[0].child || !lines.value[0].child.length)) {
+
         dispatch(addLine(firstItem.current));
-        dispatch(setLevel({ id: firstItem.current.id, level: 0 }));
-        
-        return data
+        dispatch(
+          setLevel({ ...firstItem.current, id: firstItem.current.id, level: 0 })
+        );
+
+        return data;
       }
       return data;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
-    }
+   
   }
 );
-export const updateLine = createAsyncThunk(
+export const updateLine = createAsyncThunk<
+  ILine,
+  ILine,
+  { rejectValue: string }
+>(
   "line/updateLine",
   async function (updatedLine: ILine, { rejectWithValue, dispatch }) {
-    try {
+   
       const resp = await fetch(
         `http://185.244.172.108:8081/v1/outlay-rows/entity/50088/row/${updatedLine.id}/update`,
         {
@@ -156,23 +141,31 @@ export const updateLine = createAsyncThunk(
         }
       );
       if (!resp.ok) {
-        throw new Error("Can't add new line");
+        return rejectWithValue("Can't add new line");
       }
       const data = await resp.json();
-
+      if (data.changed.length) {
+        // dispatch(setChildForLine(data));
+        dispatch(
+          setLevel({
+            ...data.current,
+            id: data.current.id,
+            level: data.changed.length,
+          })
+        );
+        data.changed.map((item: ILine) => dispatch(updateLine(item)));
+      }
       dispatch(updateLineData(data.current));
 
       return data;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
-    }
+  
   }
 );
 // Define a type for the slice state
 interface LineState {
   value: ILine[];
   status: "idle" | "pending" | "succeeded" | "failed";
-  error: string | null | any;
+  error: string | null | undefined;
 }
 
 // Define the initial state using that type
@@ -187,11 +180,11 @@ export const lineSlice = createSlice({
   // `createSlice` will infer the state type from the `initialState` argument
   initialState,
   reducers: {
-    addLine(state, action) {
+    addLine(state, action: PayloadAction<ILine>) {
       state.value.push(action.payload);
     },
-    updateLineData(state, action) {
-      const lineData = findObj(state.value, action.payload.id);
+    updateLineData(state, action: PayloadAction<ILine>) {
+      const lineData = findObj(state.value, action.payload.id || 0);
 
       if (lineData) {
         lineData.rowName = action.payload.rowName;
@@ -201,14 +194,17 @@ export const lineSlice = createSlice({
         lineData.estimatedProfit = action.payload.estimatedProfit;
       }
     },
-    setLevel(state, action) {
-      const lineData = findObj(state.value, action.payload.id);
+    setLevel(state, action: PayloadAction<ILine>) {
+      const lineData = findObj(state.value, action.payload.id || 0);
 
       if (lineData) {
         lineData.level = action.payload.level;
       }
     },
-    setChildForLine(state, action) {
+    setChildForLine(
+      state,
+      action: PayloadAction<{ current: ILine; changed: any[] }>
+    ) {
       const lineData = findObj(state.value, action.payload.changed[0].id);
       if (lineData) {
         lineData.child = lineData.child
@@ -216,7 +212,7 @@ export const lineSlice = createSlice({
           : [action.payload.current];
       }
     },
-    deleteOneLine(state, action) {
+    deleteOneLine(state, action: PayloadAction<number>) {
       function removeById(state: any[], filter: number) {
         state.forEach((item, index) => {
           if (item.id === filter) {
@@ -240,6 +236,7 @@ export const lineSlice = createSlice({
       //fetch lines
       .addCase(fetchLines.pending, (state) => {
         state.status = "pending";
+        state.error = null;
       })
       .addCase(fetchLines.fulfilled, (state, action) => {
         state.status = "succeeded";
@@ -253,6 +250,7 @@ export const lineSlice = createSlice({
       // create new line
       .addCase(createLine.pending, (state) => {
         state.status = "pending";
+        state.error = null;
       })
       .addCase(createLine.fulfilled, (state) => {
         state.status = "succeeded";
@@ -265,6 +263,7 @@ export const lineSlice = createSlice({
       // update line
       .addCase(updateLine.pending, (state) => {
         state.status = "pending";
+        state.error = null;
       })
       .addCase(updateLine.fulfilled, (state) => {
         state.status = "succeeded";
@@ -276,6 +275,7 @@ export const lineSlice = createSlice({
       // delete line
       .addCase(deleteLine.pending, (state) => {
         state.status = "pending";
+        state.error = null;
       })
       .addCase(deleteLine.fulfilled, (state) => {
         state.status = "succeeded";

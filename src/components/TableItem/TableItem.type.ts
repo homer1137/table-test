@@ -1,6 +1,6 @@
 export interface ILine {
     id?: number;
-    child: any[];
+    child?: any[];
     equipmentCosts: number;
     estimatedProfit: number;
     machineOperatorSalary: number;
@@ -8,7 +8,7 @@ export interface ILine {
     materials: number;
     mimExploitation: number;
     overheads: number;
-    parentId: number | null;
+    parentId?: number | null ;
     rowName: string;
     salary: number;
     supportCosts: number;
