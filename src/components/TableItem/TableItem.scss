@@ -1,6 +1,6 @@
 .tableItem {
     display: grid;
-    grid-template-columns: 200px 1fr repeat(4, 200px);
+    grid-template-columns: auto 25vw repeat(4, 10vw);
     align-items: center;
     height: 60px;
     font-weight: 400;
